@@ -22,7 +22,7 @@ class UsersUidProvider
     public function getSeriesUid()
     {
         for ($this->start; $this->start <= $this->limit; $this->start = $this->start + $this->step) {
-            yield implode(',',range($this->start, $this->start + $this->step - 1));
+            yield implode(',', range($this->start, $this->start + $this->step - 1));
         }
     }
 
