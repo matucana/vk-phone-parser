@@ -8,6 +8,7 @@ use Brick\PhoneNumber\PhoneNumber;
 use Brick\PhoneNumber\PhoneNumberParseException;
 use Generator;
 use VK\Client\VKApiClient;
+use League\Csv\Writer;
 
 class App
 {
@@ -23,6 +24,8 @@ class App
 
     public function run(): Generator
     {
+        $writer = Writer::createFromPath(__DIR__ . '/../file.csv', 'w+');
+
         $all_search = 0;
         foreach ($this->usersUidProvider->getSeriesUid() as $user_ids) {
             $params = [
@@ -32,14 +35,16 @@ class App
 
             $result = $this->vkApiClient->users()->get($_ENV['VK_SERVICE_KEY'], $params);
             $data = $this->validator($this->parser($result));
-            $json = json_encode($data);
-            file_put_contents(__DIR__ . '/../json/' . ($this->usersUidProvider->getStart() + 999) . '.json', $json);
+
+            $writer->insertAll($data);
 
             if ($all_search === 0) {
                 yield 'Запускаем сканирование' . PHP_EOL . 'Сканируем ' . $this->usersUidProvider->getLimit(
                     ) . ' пользователей' . PHP_EOL;
             }
+
             $all_search = $all_search + count($data);
+
             yield 'Обработано ' . ($this->usersUidProvider->getStart() + 999) . ' => Найдено номеров: ' . count(
                     $data
                 ) . ' | Всего найдено: ' . $all_search . ' | Осталось обработать ' . ($this->usersUidProvider->getLimit(
